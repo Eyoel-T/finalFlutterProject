@@ -69,7 +69,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     height: 50,
                   ),
                   Text(
-                    "Full name",
+                    "Username",
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontFamily: 'Poppins',
@@ -81,7 +81,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   TextFormField(
                     controller: nameController,
                     decoration: InputDecoration(
-                      hintText: "enter your full name",
+                      hintText: "enter your username",
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10)),
                       prefixIcon: Icon(

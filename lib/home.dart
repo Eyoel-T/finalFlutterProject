@@ -16,6 +16,8 @@ class _HomeState extends State<Home> {
   FirebaseAuth auth = FirebaseAuth.instance;
   late User loggedInUser;
   late String email;
+  late final SharedPreferences pref;
+  String name = "";
 
   void getCurrentUser() {
     try {
@@ -30,9 +32,6 @@ class _HomeState extends State<Home> {
 
   final taskInputController = TextEditingController();
   List<Task> taskList = [];
-
-  late final SharedPreferences pref;
-  late String name;
 
   void loadSharedPreferencesAndData() async {
     pref = await SharedPreferences.getInstance();
@@ -129,7 +128,7 @@ class _HomeState extends State<Home> {
                       height: 30,
                     ),
                     Text(
-                      "Hello$name",
+                      "Hello $name",
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 40,
@@ -192,14 +191,15 @@ class _HomeState extends State<Home> {
   }
 
   void loadData() {
-    name = pref.getString("name")!;
     List<String>? listString = pref.getStringList('list');
-    if (listString != null) {
-      taskList =
-          listString.map((item) => Task.fromMap(json.decode(item))).toList();
 
-      setState(() {});
-    }
+    setState(() {
+      if (listString != null) {
+        taskList =
+            listString.map((item) => Task.fromMap(json.decode(item))).toList();
+      }
+      name = pref.getString("name")!;
+    });
   }
 
   void saveData() {
