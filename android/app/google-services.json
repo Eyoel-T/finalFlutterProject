@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "509906286994",
+    "project_id": "microflutter-600f8",
+    "storage_bucket": "microflutter-600f8.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:509906286994:android:be8ae557fd06e7180e694b",
+        "android_client_info": {
+          "package_name": "com.example.flutter_micro_final"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "509906286994-j8gbqeriq3tikio1luevgr2i43utqriv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_drLUzlM3FLN4S5yIJNCi5Hn7zMq9aKE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "509906286994-j8gbqeriq3tikio1luevgr2i43utqriv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

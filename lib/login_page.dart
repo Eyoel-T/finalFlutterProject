@@ -1,0 +1,179 @@
+import "package:flutter/material.dart";
+import "package:firebase_auth/firebase_auth.dart";
+import "home.dart";
+import 'package:flutter/gestures.dart';
+import 'register_page.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class LoginPage extends StatefulWidget {
+  LoginPage({Key? key}) : super(key: key);
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _auth = FirebaseAuth.instance;
+  bool isChecked = false;
+  bool game = false;
+  late String email;
+  late String password;
+  bool loadingSpinner = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: ModalProgressHUD(
+        inAsyncCall: loadingSpinner,
+        child: SafeArea(
+            child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: ListView(
+            children: [
+              SizedBox(
+                height: 100.0,
+              ),
+              Center(
+                child: Text(
+                  "Login",
+                  style: TextStyle(
+                      fontSize: 30,
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.w500),
+                ),
+              ),
+              SizedBox(
+                height: 80,
+              ),
+              Text(
+                "Email",
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontFamily: 'Poppins',
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              TextFormField(
+                onChanged: (value) {
+                  email = value;
+                },
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                    hintText: "enter your email",
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.blue),
+                    ),
+                    prefixIcon: Icon(Icons.email),
+                    contentPadding: EdgeInsets.all(17)),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Text(
+                "Password",
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontFamily: 'Poppins',
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              TextFormField(
+                onChanged: (value) {
+                  password = value;
+                },
+                decoration: InputDecoration(
+                  hintText: "enter your password",
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  prefixIcon: Icon(Icons.lock),
+                  contentPadding: EdgeInsets.all(17),
+                ),
+                obscureText: true,
+              ),
+              SizedBox(
+                height: 60,
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  try {
+                    setState(() {
+                      loadingSpinner = true;
+                    });
+                    await _auth.signInWithEmailAndPassword(
+                        email: email, password: password);
+                    final SharedPreferences pref =
+                        await SharedPreferences.getInstance();
+                    pref.setBool("isUserlogged", true);
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (BuildContext context) => Home(),
+                      ),
+                      (route) => false,
+                    );
+
+                    setState(() {
+                      loadingSpinner = false;
+                    });
+                  } catch (e) {
+                    print(e);
+                    setState(() {
+                      loadingSpinner = false;
+                    });
+                  }
+                },
+                style: ElevatedButton.styleFrom(minimumSize: Size(200, 50)),
+                child: Text(
+                  "Sign In",
+                  style: TextStyle(fontFamily: "Poppins", fontSize: 20),
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Center(
+                child: RichText(
+                  text: TextSpan(
+                      text: "Create new account? ",
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 15,
+                      ),
+                      children: [
+                        TextSpan(
+                            text: "Sign Up",
+                            style: TextStyle(
+                                color: Colors.blue,
+                                decoration: TextDecoration.underline),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => RegisterPage(),
+                                  ),
+                                );
+                              })
+                      ]),
+                ),
+              )
+            ],
+          ),
+        )),
+      ),
+    );
+  }
+}
