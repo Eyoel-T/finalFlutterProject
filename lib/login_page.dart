@@ -1,10 +1,11 @@
 import "package:flutter/material.dart";
-import "package:firebase_auth/firebase_auth.dart";
+
 import "home.dart";
 import 'package:flutter/gestures.dart';
 import 'register_page.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import "package:dio/dio.dart";
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key? key}) : super(key: key);
@@ -14,12 +15,40 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _auth = FirebaseAuth.instance;
   bool isChecked = false;
   bool game = false;
-  late String email;
-  late String password;
   bool loadingSpinner = false;
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  Dio dio = Dio();
+
+  void login() async {
+    try {
+      var response = await dio
+          .post("https://fluttertaskapp.herokuapp.com/api/auth/login", data: {
+        "email": emailController.text,
+        "password": passwordController.text,
+      });
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      pref.setBool("isUserlogged", true);
+      pref.setString("username", response.data["username"]);
+      pref.setString("userId", response.data["_id"]);
+
+      if (response.statusCode == 200) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => Home(),
+          ),
+          (route) => false,
+        );
+      }
+    } catch (err) {
+      setState(() {
+        loadingSpinner = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,9 +87,7 @@ class _LoginPageState extends State<LoginPage> {
                 height: 10,
               ),
               TextFormField(
-                onChanged: (value) {
-                  email = value;
-                },
+                controller: emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                     hintText: "enter your email",
@@ -87,9 +114,7 @@ class _LoginPageState extends State<LoginPage> {
                 height: 10,
               ),
               TextFormField(
-                onChanged: (value) {
-                  password = value;
-                },
+                controller: passwordController,
                 decoration: InputDecoration(
                   hintText: "enter your password",
                   border: OutlineInputBorder(
@@ -107,33 +132,11 @@ class _LoginPageState extends State<LoginPage> {
                 height: 60,
               ),
               ElevatedButton(
-                onPressed: () async {
-                  try {
-                    setState(() {
-                      loadingSpinner = true;
-                    });
-                    await _auth.signInWithEmailAndPassword(
-                        email: email, password: password);
-                    final SharedPreferences pref =
-                        await SharedPreferences.getInstance();
-                    pref.setBool("isUserlogged", true);
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (BuildContext context) => Home(),
-                      ),
-                      (route) => false,
-                    );
-
-                    setState(() {
-                      loadingSpinner = false;
-                    });
-                  } catch (e) {
-                    print(e);
-                    setState(() {
-                      loadingSpinner = false;
-                    });
-                  }
+                onPressed: () {
+                  setState(() {
+                    loadingSpinner = true;
+                  });
+                  login();
                 },
                 style: ElevatedButton.styleFrom(minimumSize: Size(200, 50)),
                 child: Text(

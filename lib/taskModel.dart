@@ -1,21 +1,11 @@
 class Task {
   final String? taskTitle;
+  final String? taskId;
   bool isDone;
 
-  Task({this.taskTitle, this.isDone = false});
+  Task({this.taskTitle, this.isDone = false, this.taskId});
 
   void done() {
     isDone = !isDone;
-  }
-
-  Task.fromMap(Map map)
-      : taskTitle = map['taskTitle'],
-        isDone = map['isDone'];
-
-  Map toMap() {
-    return {
-      'taskTitle': taskTitle,
-      'isDone': isDone,
-    };
   }
 }

@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import "package:firebase_auth/firebase_auth.dart";
+
 import 'taskModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import "package:dio/dio.dart";
+import 'package:uuid/uuid.dart';
 
 class Home extends StatefulWidget {
   Home({Key? key}) : super(key: key);
@@ -13,35 +15,54 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   @override
-  FirebaseAuth auth = FirebaseAuth.instance;
-  late User loggedInUser;
-  late String email;
   late final SharedPreferences pref;
+  late String userId;
+  Dio dio = Dio();
   String name = "";
-
-  void getCurrentUser() {
-    try {
-      final user = auth.currentUser;
-      if (user != null) {
-        loggedInUser = user;
-      }
-    } catch (e) {
-      print(e);
-    }
-  }
+  final uuid = Uuid();
 
   final taskInputController = TextEditingController();
   List<Task> taskList = [];
 
-  void loadSharedPreferencesAndData() async {
-    pref = await SharedPreferences.getInstance();
-    loadData();
-  }
-
   void initState() {
     super.initState();
-    getCurrentUser();
     loadSharedPreferencesAndData();
+  }
+
+  void loadSharedPreferencesAndData() async {
+    try {
+      pref = await SharedPreferences.getInstance();
+      userId = pref.getString("userId")!;
+      name = pref.getString("username")!;
+      var response = await dio
+          .get("https://fluttertaskapp.herokuapp.com/api/task/$userId");
+      for (var task in response.data) {
+        taskList
+            .add(Task(taskTitle: task["taskTitle"], taskId: task["taskId"]));
+      }
+      setState(() {});
+    } catch (err) {}
+  }
+
+  void addTask(taskId) async {
+    try {
+      var response = await dio
+          .post("https://fluttertaskapp.herokuapp.com/api/task", data: {
+        "userId": userId,
+        "taskTitle": taskInputController.text,
+        "taskId": taskId,
+        "isDone": true,
+      });
+    } catch (err) {}
+  }
+
+  void deleteTask(taskId) async {
+    try {
+      print("taskId==$taskId");
+      var response = await dio
+          .delete("https://fluttertaskapp.herokuapp.com/api/task/$taskId");
+      print(response.data);
+    } catch (err) {}
   }
 
   @override
@@ -84,11 +105,13 @@ class _HomeState extends State<Home> {
                           ElevatedButton(
                               onPressed: () {
                                 if (taskInputController.text.length != 0) {
+                                  var uniqueTaskId = uuid.v4();
                                   setState(() {
                                     taskList.add(Task(
-                                        taskTitle: taskInputController.text));
+                                        taskTitle: taskInputController.text,
+                                        taskId: uniqueTaskId));
                                   });
-                                  saveData();
+                                  addTask(uniqueTaskId);
 
                                   taskInputController.clear();
                                 }
@@ -159,10 +182,12 @@ class _HomeState extends State<Home> {
                     itemBuilder: (context, index) {
                       return ListTile(
                         onLongPress: () {
+                          var uniqueTaskId = taskList[index].taskId;
                           setState(() {
                             taskList.removeAt(index);
-                            saveData();
                           });
+                          print(uniqueTaskId);
+                          deleteTask(uniqueTaskId);
                         },
                         title: Text(taskList[index].taskTitle!,
                             style: TextStyle(
@@ -188,23 +213,5 @@ class _HomeState extends State<Home> {
             ],
           ),
         ));
-  }
-
-  void loadData() {
-    List<String>? listString = pref.getStringList('list');
-
-    setState(() {
-      if (listString != null) {
-        taskList =
-            listString.map((item) => Task.fromMap(json.decode(item))).toList();
-      }
-      name = pref.getString("name")!;
-    });
-  }
-
-  void saveData() {
-    List<String> stringList =
-        taskList.map((item) => json.encode(item.toMap())).toList();
-    pref.setStringList('list', stringList);
   }
 }

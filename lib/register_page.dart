@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import "package:flutter/material.dart";
 import 'login_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,6 +7,8 @@ import 'package:flutter/gestures.dart';
 import 'home.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+// import "package:http/http.dart";
+import "package:dio/dio.dart";
 
 class RegisterPage extends StatefulWidget {
   RegisterPage({Key? key}) : super(key: key);
@@ -19,6 +23,37 @@ class _RegisterPageState extends State<RegisterPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final nameController = TextEditingController();
+  Dio dio = Dio();
+
+  void register() async {
+    try {
+      var response = await dio.post(
+          "https://fluttertaskapp.herokuapp.com/api/auth/register",
+          data: {
+            "username": nameController.text,
+            "email": emailController.text,
+            "password": passwordController.text,
+          });
+      final SharedPreferences pref = await SharedPreferences.getInstance();
+      pref.setBool("isUserlogged", true);
+      pref.setString("username", nameController.text);
+      pref.setString("userId", response.data["_id"]);
+      print(response.data["_id"]);
+      if (response.statusCode == 200) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (BuildContext context) => Home(),
+          ),
+          (route) => false,
+        );
+      }
+    } catch (err) {
+      setState(() {
+        loadingSpinner = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -191,34 +226,27 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   ElevatedButton(
                     onPressed: isChecked
-                        ? () async {
+                        ? () {
                             setState(() {
                               loadingSpinner = true;
                             });
-                            try {
-                              await FirebaseAuth.instance
-                                  .createUserWithEmailAndPassword(
-                                      email: emailController.text,
-                                      password: passwordController.text);
+                            // await FirebaseAuth.instance
+                            //     .createUserWithEmailAndPassword(
+                            //         email: emailController.text,
+                            //         password: passwordController.text);
 
-                              final SharedPreferences pref =
-                                  await SharedPreferences.getInstance();
-                              pref.setBool("isUserlogged", true);
-                              pref.setString("name", nameController.text);
+                            register();
+                            // setState(() {
+                            //   loadingSpinner = false;
+                            // });
 
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (BuildContext context) => Home(),
-                                ),
-                                (route) => false,
-                              );
-                            } catch (e) {
-                              print(e);
-                              setState(() {
-                                loadingSpinner = false;
-                              });
-                            }
+                            // Navigator.pushAndRemoveUntil(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (BuildContext context) => Home(),
+                            //   ),
+                            //   (route) => false,
+                            // );
                           }
                         : null,
                     style: ElevatedButton.styleFrom(minimumSize: Size(200, 50)),
