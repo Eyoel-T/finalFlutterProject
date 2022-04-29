@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.flutter_micro_final">
    <application
-        android:label="flutter_micro_final"
+        android:label="Easy Task"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
